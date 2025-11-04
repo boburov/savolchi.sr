@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 👑 ADMIN (Maktab egasi)
+model Admin {
+  id           Int           @id @default(autoincrement())
+  name         String
+  email        String        @unique
+  password     String
+  school       School?
+  createdAt    DateTime      @default(now())
+  subscription Subscription? // Adminning to‘lov / abonement holati
+}
+
+// 🏫 MAKTAB (platformada ko‘rinadigan tashkilot)
+model School {
+  id        Int      @id @default(autoincrement())
+  name      String
+  pfp       String? // logo rasmi
+  banner    String? // fon rasmi
+  adminId   Int      @unique
+  admin     Admin    @relation(fields: [adminId], references: [id])
+  tests     Test[] // shu maktab testlari
+  createdAt DateTime @default(now())
+}
+
+//
+// 🧠 TESTLAR
+//
+model Test {
+  id          Int          @id @default(autoincrement())
+  name        String
+  description String?
+  type        TestType     @default(PRIVATE)
+  password    String?
+  pfp         String?
+  schoolId    Int
+  school      School       @relation(fields: [schoolId], references: [id])
+  questions   Question[]
+  createdAt   DateTime     @default(now())
+  UserAccess  UserAccess[]
+}
+
+//
+// ❓ SAVOLLAR
+//
+model Question {
+  id        Int      @id @default(autoincrement())
+  question  String
+  testId    Int
+  test      Test     @relation(fields: [testId], references: [id])
+  options   Option[]
+  correctId Int?
+}
+
+//
+// 🔘 JAVOB VARIANTLARI
+//
+model Option {
+  id         Int      @id @default(autoincrement())
+  text       String
+  questionId Int
+  question   Question @relation(fields: [questionId], references: [id])
+}
+
+//
+// 👥 TEST ISHTIROKCHILARI (USERLAR)
+//
+model User {
+  id         Int          @id @default(autoincrement())
+  username   String
+  password   String
+  testAccess UserAccess[]
+  createdAt  DateTime     @default(now())
+}
+
+//
+// 🔑 USER’NING QAYSI TESTGA KIRISH HUQUQI BOR
+//
+model UserAccess {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  testId    Int
+  expiresAt DateTime // 1 oylik limit
+  user      User     @relation(fields: [userId], references: [id])
+  test      Test     @relation(fields: [testId], references: [id])
+}
+
+//
+// 💳 ADMINNING TO‘LOV / ABONEMENT HOLATI
+//
+model Subscription {
+  id        Int      @id @default(autoincrement())
+  adminId   Int      @unique // 🔥 shu yerda @unique qo‘shildi
+  userLimit Int
+  expiresAt DateTime
+  active    Boolean  @default(true)
+  admin     Admin    @relation(fields: [adminId], references: [id])
+}
+
+//
+// 🧩 ENUM (test turlari)
+//
+enum TestType {
+  PUBLIC
+  PRIVATE
+}
