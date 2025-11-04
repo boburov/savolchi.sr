@@ -2,12 +2,21 @@ const express = require("express");
 const dotenv = require("dotenv");
 const authRouter = require("./router/auth/auth.router");
 const connectDB = require("./config/db");
+const cors = require("cors");
 
 dotenv.config();
 connectDB();
 const app = express();
 app.use(express.json());
 
+app.use(cors())
+app.use(cors({
+  origin: ["http://localhost:3000", "https://your-frontend.com"],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+  optionsSuccessStatus: 200
+}));
 app.use("/auth", authRouter);
 app.use("/user", require("./router/users/user.router"));
 
