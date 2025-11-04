@@ -2,12 +2,14 @@ const { hashPassword, comparePassword } = require("../utils/hash");
 const { generateToken } = require("../utils/jwt");
 const prisma = require("../config/prismaClient");
 const mailService = require("../utils/mail.verification");
+const { codeGenerator } = require("../utils/code.gen");
+const client = require("../config/redis.js");
 
 const registerAdmin = async (name, email, password) => {
   const existing = await prisma.admin.findUnique({ where: { email } });
   if (existing) throw new Error("Email already in use");
 
-  mailService.sendVerificationCode(email, );
+  mailService.sendVerificationCode(email, codeGenerator());
 
   const hashed = await hashPassword(password);
   const admin = await prisma.admin.create({
@@ -33,6 +35,8 @@ const registerUser = async (username, password) => {
   const existing = await prisma.user.findUnique({ where: { username } });
   if (existing) throw new Error("Username already in use");
 
+  mailService.sendVerificationCode(email, codeGenerator());
+  client.set(username, "true", { EX: 300 });
   const hashed = await hashPassword(password);
   const user = await prisma.user.create({
     data: { username, password: hashed },

@@ -1,14 +1,8 @@
 const express = require("express");
-const {
-  registerAdmin,
-  loginAdmin,
-  registerUser,
-  loginUser,
-} = require("../../service/auth.service");
-
 const router = express.Router();
+const { registerAdmin, loginAdmin, registerUser, loginUser } = require("../../service/auth.service");
 
-// 🧑‍💼 Admin register
+// ADMIN REGISTER
 router.post("/admin/register", async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -19,7 +13,7 @@ router.post("/admin/register", async (req, res) => {
   }
 });
 
-// 🔑 Admin login
+// ADMIN LOGIN
 router.post("/admin/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -30,7 +24,7 @@ router.post("/admin/login", async (req, res) => {
   }
 });
 
-// 👤 User register
+// USER REGISTER
 router.post("/user/register", async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -41,7 +35,7 @@ router.post("/user/register", async (req, res) => {
   }
 });
 
-// 👤 User login
+// USER LOGIN
 router.post("/user/login", async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -52,4 +46,4 @@ router.post("/user/login", async (req, res) => {
   }
 });
 
-module.exports = router;
+module.exports = router; // 🔥 MUHIM!

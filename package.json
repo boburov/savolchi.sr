@@ -20,7 +20,8 @@
     "nodemailer": "^7.0.10",
     "nodemon": "^3.1.10",
     "pg": "^8.16.3",
-    "prisma": "^6.18.0"
+    "prisma": "^6.18.0",
+    "redis": "^5.9.0"
   },
   "repository": {
     "type": "git",
