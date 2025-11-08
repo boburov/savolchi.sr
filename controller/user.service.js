@@ -3,7 +3,7 @@ const client = require("../config/redis");
 
 const all_users = async () => {
   try {
-    const users = await prisma.admin.findMany({});
+    const users = await prisma.user.findMany({});
 
     return {
       msg: "userlar topildi",
