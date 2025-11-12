@@ -12,81 +12,108 @@ model Admin {
   name         String
   email        String        @unique
   password     String
-  school       School?
-  createdAt    DateTime      @default(now())
+  is_verifyed  Boolean       @default(false)
+  channel      Channel?
   subscription Subscription?
+  createdAt    DateTime      @default(now())
 }
 
-model School {
-  id        Int      @id @default(autoincrement())
+model Channel {
+  id        Int       @id @default(autoincrement())
   name      String
   pfp       String?
   banner    String?
-  adminId   Int      @unique
-  admin     Admin    @relation(fields: [adminId], references: [id])
+  bio       String?
+  adminId   Int       @unique
+  admin     Admin     @relation(fields: [adminId], references: [id])
+  subjects  Subject[]
+  createdAt DateTime  @default(now())
+}
+
+model Subject {
+  id        Int      @id @default(autoincrement())
+  name      String
+  channelId Int
+  channel   Channel  @relation(fields: [channelId], references: [id])
   tests     Test[]
   createdAt DateTime @default(now())
 }
 
 model Test {
-  id          Int          @id @default(autoincrement())
+  id          Int        @id @default(autoincrement())
   name        String
   description String?
-  type        TestType     @default(PRIVATE)
-  password    String?
-  pfp         String?
-  schoolId    Int
-  school      School       @relation(fields: [schoolId], references: [id])
+  level       TestLevel  @default(EASY)
+  xpReward    Int        @default(1) // har bir levelga qarab 1-9xp oraliqda
+  subjectId   Int
+  subject     Subject    @relation(fields: [subjectId], references: [id])
   questions   Question[]
-  createdAt   DateTime     @default(now())
-  UserAccess  UserAccess[]
+  results     Result[]
+  createdAt   DateTime   @default(now())
 }
 
 model Question {
-  id        Int      @id @default(autoincrement())
-  question  String
-  testId    Int
-  test      Test     @relation(fields: [testId], references: [id])
-  options   Option[]
-  correctId Int?
-}
-
-model Option {
-  id         Int      @id @default(autoincrement())
-  text       String
-  questionId Int
-  question   Question @relation(fields: [questionId], references: [id])
+  id     Int    @id @default(autoincrement())
+  text   String
+  answer String
+  testId Int
+  test   Test   @relation(fields: [testId], references: [id])
 }
 
 model User {
-  id         Int          @id @default(autoincrement())
-  username   String
-  password   String
-  isVerified Boolean      @default(false)
-  email      String       @unique
-  testAccess UserAccess[]
-  createdAt  DateTime     @default(now())
+  id          Int      @id @default(autoincrement())
+  username    String
+  email       String   @unique
+  password    String
+  xp          Int      @default(0)
+  rank        Rank     @default(F)
+  createdAt   DateTime @default(now())
+  is_verifyed Boolean  @default(false)
+  results     Result[]
 }
 
-model UserAccess {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  testId    Int
-  expiresAt DateTime
-  user      User     @relation(fields: [userId], references: [id])
-  test      Test     @relation(fields: [testId], references: [id])
+model Result {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  testId      Int
+  xpEarned    Int      @default(0) // foydalanuvchi olgan XP
+  completedAt DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+  test        Test     @relation(fields: [testId], references: [id])
 }
 
 model Subscription {
-  id        Int      @id @default(autoincrement())
-  adminId   Int      @unique
-  userLimit Int
-  expiresAt DateTime
-  active    Boolean  @default(true)
-  admin     Admin    @relation(fields: [adminId], references: [id])
+  id           Int              @id @default(autoincrement())
+  adminId      Int              @unique
+  type         SubscriptionType @default(MONTHLY)
+  userLimit    Int              @default(200)
+  subjectLimit Int              @default(3)
+  expiresAt    DateTime
+  active       Boolean          @default(true)
+  admin        Admin            @relation(fields: [adminId], references: [id])
 }
 
-enum TestType {
-  PUBLIC
-  PRIVATE
+enum SubscriptionType {
+  MONTHLY
+  THREE_MONTHS
+  SIX_MONTHS
+  YEARLY
+}
+
+enum TestLevel {
+  EASY
+  MEDIUM
+  HARD
+  EXPERT
+  LEGENDARY
+}
+
+enum Rank {
+  S
+  A
+  B
+  C
+  D
+  E
+  F
 }

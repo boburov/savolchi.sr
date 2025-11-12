@@ -1,17 +1,20 @@
-// redis.js
 const { createClient } = require("redis");
 
-const client = createClient();
+const client = createClient({
+  url: process.env.REDIS_URL || "redis://localhost:6379",
+});
 
-client.on("error", (err) => console.error("Redis xatosi:", err));
+client.on("error", (err) => {
+  console.error("Redis Client Error:", err);
+});
 
-async function connectRedis() {
-  if (!client.isOpen) {
+(async () => {
+  try {
     await client.connect();
-    console.log("Redisga ulandi ✅");
+    console.log("Redis connected");
+  } catch (err) {
+    console.error("Redis connection failed:", err);
   }
-}
-
-connectRedis();
+})();
 
 module.exports = client;

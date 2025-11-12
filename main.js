@@ -3,6 +3,7 @@ const dotenv = require("dotenv");
 const authRouter = require("./router/auth/auth.router");
 const connectDB = require("./config/db");
 const cors = require("cors");
+const path = require("path");
 dotenv.config();
 
 connectDB();
@@ -10,7 +11,11 @@ const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: ["http://localhost:3000", "https://boburov.uz"],
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:3001",
+      "https://boburov.uz",
+    ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
@@ -25,7 +30,8 @@ app.get("/", (req, res) => {
 app.use("/auth", authRouter);
 app.use("/user", require("./router/users/user.router"));
 app.use("/test", require("./router/test.router"));
-app.use("/file", require("./router/upload/upload"));
+app.use("/channel", require("./router/chanel.creator"));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
