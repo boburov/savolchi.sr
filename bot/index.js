@@ -1,21 +1,19 @@
-// Foydalanuvchi obunasini hisoblash funksiyasi
 function getExpiryDate(planType) {
   const now = new Date();
   switch (planType) {
     case "MONTHLY":
-      return new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 kun
+      return new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
     case "THREE_MONTHS":
-      return new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000); // 90 kun
+      return new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
     case "SIX_MONTHS":
-      return new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000); // 180 kun
+      return new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000);
     case "YEARLY":
-      return new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000); // 365 kun
+      return new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
     default:
       return now;
   }
 }
 
-// Formatlash funksiyasi: soat, minut, sekund bilan
 function formatDateTime(date) {
   const d = new Date(date);
   return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()} ${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`;
@@ -42,7 +40,6 @@ function bot_runner() {
     },
   });
 
-  // Menyular
   const mainMenu = Markup.inlineKeyboard([
     [Markup.button.callback("Ro'yxatdan o'tish", "register")],
     [Markup.button.callback("Kirish", "login")],
@@ -79,13 +76,11 @@ function bot_runner() {
     { type: "YEARLY", name: "1 yillik", price: 78.99, limit: 2000, branch: 12 },
   ];
 
-  // /start
   bot.start(async (ctx) => {
     const chatId = String(ctx.chat.id);
     const admin = await prisma.admin.findUnique({ where: { tgId: chatId } });
 
     if (admin) {
-      // Obuna ma'lumotlarini tekshirish
       const subscription = await prisma.subscription.findUnique({
         where: { adminId: admin.tgId },
       });
@@ -117,21 +112,18 @@ function bot_runner() {
     );
   });
 
-  // Ro'yxatdan o'tish
   bot.action("register", async (ctx) => {
     await ctx.answerCbQuery();
     state[String(ctx.chat.id)] = { step: "register_name" };
     ctx.reply("📝 Ismingizni kiriting:");
   });
 
-  // Login
   bot.action("login", async (ctx) => {
     await ctx.answerCbQuery();
     state[String(ctx.chat.id)] = { step: "login_email" };
     ctx.reply("📧 Emailni kiriting:");
   });
 
-  // Obuna olish
   bot.action("buy_subscription", async (ctx) => {
     await ctx.answerCbQuery();
     state[String(ctx.chat.id)] = { step: "select_plan" };
@@ -154,13 +146,11 @@ function bot_runner() {
     ctx.reply("❌ Jarayon bekor qilindi.");
   });
 
-  // Text xabarlar
   bot.on("text", async (ctx) => {
     const chatId = String(ctx.chat.id);
     const st = state[chatId];
     if (!st) return;
 
-    // Ro'yxatdan o'tish
     if (st.step === "register_name") {
       st.name = ctx.message.text;
       st.step = "register_email";
@@ -192,7 +182,6 @@ function bot_runner() {
       }
     }
 
-    // Login flow
     if (st.step === "login_email") {
       st.email = ctx.message.text.trim();
       st.step = "login_password";
@@ -230,7 +219,6 @@ function bot_runner() {
       );
     }
 
-    // Check yuborish
     if (st.step === "await_payment") {
       const plan = st.plan;
       const user = await prisma.admin.findUnique({ where: { tgId: chatId } });
@@ -270,7 +258,6 @@ function bot_runner() {
     }
   });
 
-  // Photo xabarlar
   bot.on("photo", async (ctx) => {
     const chatId = String(ctx.chat.id);
     const st = state[chatId];
@@ -311,7 +298,6 @@ function bot_runner() {
     ctx.reply("📤 Check yuborildi, adminga ketdi.");
   });
 
-  // Verify subscription (admin)
   bot.action(/verify_(.*)_(.*)/, async (ctx) => {
     await ctx.answerCbQuery();
 
@@ -368,7 +354,6 @@ function bot_runner() {
     ctx.reply("✅ Tasdiqladim.");
   });
 
-  // Reject subscription (admin)
   bot.action(/reject_(.*)/, async (ctx) => {
     await ctx.answerCbQuery();
 
