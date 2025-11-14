@@ -14,6 +14,7 @@ model Admin {
   password     String
   is_verifyed  Boolean       @default(false)
   channel      Channel?
+  tgId         String?       @unique
   subscription Subscription?
   createdAt    DateTime      @default(now())
 }
@@ -44,7 +45,7 @@ model Test {
   name        String
   description String?
   level       TestLevel  @default(EASY)
-  xpReward    Int        @default(1) // har bir levelga qarab 1-9xp oraliqda
+  xpReward    Int        @default(1)
   subjectId   Int
   subject     Subject    @relation(fields: [subjectId], references: [id])
   questions   Question[]
@@ -76,7 +77,7 @@ model Result {
   id          Int      @id @default(autoincrement())
   userId      Int
   testId      Int
-  xpEarned    Int      @default(0) // foydalanuvchi olgan XP
+  xpEarned    Int      @default(0)
   completedAt DateTime @default(now())
   user        User     @relation(fields: [userId], references: [id])
   test        Test     @relation(fields: [testId], references: [id])
@@ -84,13 +85,15 @@ model Result {
 
 model Subscription {
   id           Int              @id @default(autoincrement())
-  adminId      Int              @unique
+  adminId      String           @unique
   type         SubscriptionType @default(MONTHLY)
-  userLimit    Int              @default(200)
+  verifed      Boolean          @default(false)
+  limit        Int              @default(200)
   subjectLimit Int              @default(3)
   expiresAt    DateTime
   active       Boolean          @default(true)
-  admin        Admin            @relation(fields: [adminId], references: [id])
+  admin        Admin            @relation(fields: [adminId], references: [tgId])
+  
 }
 
 enum SubscriptionType {

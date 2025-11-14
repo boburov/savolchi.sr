@@ -4,9 +4,11 @@ const authRouter = require("./router/auth/auth.router");
 const connectDB = require("./config/db");
 const cors = require("cors");
 const path = require("path");
+const { bot_runner } = require("./bot");
 dotenv.config();
 
 connectDB();
+bot_runner()
 const app = express();
 app.use(express.json());
 app.use(
