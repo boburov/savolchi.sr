@@ -67,14 +67,40 @@ const create_chanel = async (req, res) => {
   }
 };
 
+const get_channel_by_id = async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ message: "ID noto‘g‘ri" });
+    }
+
+    const chanel = await prisma.channel.findFirst({
+      where: { id },
+      include: {
+        subjects: true,
+        admin: true,
+      },
+    });
+
+    if (!chanel) {
+      return res.status(404).json({ message: "Kanal topilmadi" });
+    }
+
+    res.json(chanel);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server xatosi", error: error.message });
+  }
+};
+
 const all_chanels = async (req, res) => {
   try {
     const all_chanels = await prisma.channel.findMany({});
 
-    res.json(all_chanels);
+    res.send(all_chanels);
   } catch (error) {
     res.send(error);
   }
 };
 
-module.exports = { create_chanel, all_chanels };
+module.exports = { create_chanel, all_chanels, get_channel_by_id };
