@@ -1,75 +1,83 @@
-
 const prisma = require("../config/prismaClient");
 
-const all_public_tests = async () => {
-  const tests = await prisma.test.findMany({
-    where: {
-      type: "PUBLIC",
-    },
-  });
-  return tests;
-};
+// Test yaratish
+const createTest = async (subjectId, question, options = []) => {
+  // Subject mavjudligini tekshirish
+  const subject = await prisma.subject.findUnique({ where: { id: subjectId } });
+  if (!subject) throw new Error("Subject topilmadi");
 
-const test_by_id = async (id) => {
-  const test = await prisma.test.findUnique({
-    where: {
-      id: parseInt(id),
-    },
-    include: {
-      questions: {
-        include: {
-          options: true,
-        },
-      },
-    },
-  });
-  return test;
-};
-
-
-const create_test = async (name, description) => {
+  // Test yaratish
   const test = await prisma.test.create({
     data: {
-      name,
-      description,
-      schoolId: 1, // Hardcoded schoolId for now
+      question,
+      subjectId,
+      options: {
+        create: options.map(opt => ({
+          text: opt.text,
+          isCorrect: opt.isCorrect || false,
+        })),
+      },
     },
+    include: { options: true },
   });
+
   return test;
 };
 
+// Testni yangilash
+const updateTest = async (testId, data) => {
+  const test = await prisma.test.findUnique({ where: { id: testId }, include: { options: true } });
+  if (!test) throw new Error("Test topilmadi");
 
-const add_question_to_test = async (testId, question, options, correctOption) => {
-  const newQuestion = await prisma.question.create({
+  // Agar options yangilanayotgan bo‘lsa, avval o‘chirish va qayta yaratish
+  if (data.options) {
+    await prisma.option.deleteMany({ where: { testId } });
+  }
+
+  const updatedTest = await prisma.test.update({
+    where: { id: testId },
     data: {
-      question,
-      testId: parseInt(testId),
-      options: {
-        create: options.map((opt) => ({ text: opt })),
-      },
+      question: data.question,
+      options: data.options
+        ? { create: data.options.map(opt => ({ text: opt.text, isCorrect: opt.isCorrect || false })) }
+        : undefined,
     },
-    include: {
-      options: true,
-    },
+    include: { options: true },
   });
 
-  const correctOptionId = newQuestion.options[correctOption].id;
+  return updatedTest;
+};
 
-  const updatedQuestion = await prisma.question.update({
-    where: {
-      id: newQuestion.id,
-    },
-    data: {
-      correctId: correctOptionId,
-    },
+// Testni o‘chirish
+const deleteTest = async (testId) => {
+  // Avval optionlarni o‘chirib keyin testni o‘chirish
+  await prisma.option.deleteMany({ where: { testId } });
+  const deletedTest = await prisma.test.delete({ where: { id: testId } });
+  return deletedTest;
+};
+
+// Bitta testni olish
+const getTestById = async (testId) => {
+  const test = await prisma.test.findUnique({
+    where: { id: testId },
+    include: { options: true, results: true },
   });
+  if (!test) throw new Error("Test topilmadi");
+  return test;
+};
 
-  return updatedQuestion;
+// Subjectdagi barcha testlar
+const getTestsBySubject = async (subjectId) => {
+  return await prisma.test.findMany({
+    where: { subjectId },
+    include: { options: true },
+  });
 };
 
 module.exports = {
-  all_public_tests,
-  test_by_id,
-  create_test,
-  add_question_to_test,
+  createTest,
+  updateTest,
+  deleteTest,
+  getTestById,
+  getTestsBySubject,
 };

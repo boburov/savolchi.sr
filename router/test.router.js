@@ -1,43 +1,63 @@
-
 const { Router } = require("express");
 const {
-  all_public_tests,
-  test_by_id,
-  create_test,
-  add_question_to_test,
+  createTest,
+  updateTest,
+  deleteTest,
+  getTestById,
+  getTestsBySubject,
 } = require("../controller/test.service");
+
 const router = Router();
 
-router.post("/", async (req, res) => {
+// Test yaratish
+router.post("/create", async (req, res) => {
   try {
-    const { name, description } = req.body;
-    const test = await create_test(name, description);
+    const { subjectId, question, options } = req.body;
+    const test = await createTest(subjectId, question, options);
     res.json(test);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
   }
 });
 
-router.post("/:id/question", async (req, res) => {
+// Testni yangilash
+router.put("/update/:id", async (req, res) => {
   try {
-    const { id } = req.params;
-    const { question, options, correctOption } = req.body;
-    await add_question_to_test(id, question, options, correctOption);
-    const updatedTest = await test_by_id(id);
-    res.json(updatedTest);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+    const test = await updateTest(req.params.id, req.body);
+    res.json(test);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
   }
 });
 
-router.get("/all/public", async (req, res) => {
-  const tests = await all_public_tests();
-  res.send(tests);
+// Testni o‘chirish
+router.delete("/delete/:id", async (req, res) => {
+  try {
+    const test = await deleteTest(req.params.id);
+    res.json({ message: "Test o‘chirildi", test });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
 });
 
+// Bitta testni olish
 router.get("/:id", async (req, res) => {
-  const test = await test_by_id(req.params.id);
-  res.send(test);
+  try {
+    const test = await getTestById(req.params.id);
+    res.json(test);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Subjectdagi barcha testlar
+router.get("/subject/:subjectId", async (req, res) => {
+  try {
+    const tests = await getTestsBySubject(req.params.subjectId);
+    res.json(tests);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
 });
 
 module.exports = router;

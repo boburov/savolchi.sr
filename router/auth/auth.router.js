@@ -7,6 +7,7 @@ const {
   loginUser,
   verifyEmail,
   verify_token,
+  verifyAdminEmail,
 } = require("../../controller/auth.service");
 
 // ADMIN

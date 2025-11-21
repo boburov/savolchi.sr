@@ -8,7 +8,7 @@ const { bot_runner } = require("./bot");
 dotenv.config();
 
 connectDB();
-bot_runner()
+bot_runner();
 const app = express();
 app.use(express.json());
 app.use(
@@ -32,6 +32,7 @@ app.get("/", (req, res) => {
 app.use("/auth", authRouter);
 app.use("/user", require("./router/users/user.router"));
 app.use("/test", require("./router/test.router"));
+app.use("/subject", require("./router/subject.router"));
 app.use("/channel", require("./router/chanel.creator"));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 

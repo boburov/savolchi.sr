@@ -77,7 +77,7 @@ const verifyAdminEmail = async (email, code) => {
 
     const verifiedAdmin = await prisma.admin.update({
       where: { email },
-      data: { is_verifyed: true },
+      data: { isVerified: true },
     });
 
     // optional: delete redis key
@@ -148,7 +148,7 @@ const verifyEmail = async (email, code) => {
 
     const new_user = await prisma.user.update({
       where: { email },
-      data: { is_verified: true },
+      data: { isVerified: true },
     });
 
     try {
@@ -172,24 +172,21 @@ const verify_token = async (token) => {
     let userOrAdmin;
 
     if (payload.role === "USER") {
-      userOrAdmin = await prisma.user.findUnique({
+      userOrAdmin = await prisma.admin.findUnique({
         where: { id: payload.id },
         include: {
-          results: {
+          channel: {
             include: {
-              test: {
+              subjects: {
                 include: {
-                  subject: {
-                    include: {
-                      channel: {
-                        include: { admin: true },
-                      },
-                    },
+                  tests: {
+                    include: { options: true, results: true }, // questions o‘rniga options
                   },
                 },
               },
             },
           },
+          subscription: true,
         },
       });
 
@@ -203,7 +200,7 @@ const verify_token = async (token) => {
               subjects: {
                 include: {
                   tests: {
-                    include: { questions: true, results: true },
+                    include: { options: true, results: true }, // questions o‘rniga options
                   },
                 },
               },

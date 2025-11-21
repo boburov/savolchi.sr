@@ -8,75 +8,71 @@ datasource db {
 }
 
 model Admin {
-  id           Int           @id @default(autoincrement())
+  id           String        @id @default(uuid())
   name         String
   email        String        @unique
   password     String
-  is_verifyed  Boolean       @default(false)
-  channel      Channel?
+  isVerified   Boolean       @default(false)
   tgId         String?       @unique
-  subscription Subscription?
   createdAt    DateTime      @default(now())
+  channel      Channel?
+  subscription Subscription?
 }
 
 model Channel {
-  id        Int       @id @default(autoincrement())
+  id        String    @id @default(uuid())
   name      String
   pfp       String?
   banner    String?
   bio       String?
-  adminId   Int       @unique
+  adminId   String    @unique
   admin     Admin     @relation(fields: [adminId], references: [id])
   subjects  Subject[]
   createdAt DateTime  @default(now())
 }
 
 model Subject {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid())
   name      String
-  channelId Int
+  channelId String
   channel   Channel  @relation(fields: [channelId], references: [id])
   tests     Test[]
   createdAt DateTime @default(now())
 }
 
 model Test {
-  id          Int        @id @default(autoincrement())
-  name        String
-  description String?
-  level       TestLevel  @default(EASY)
-  xpReward    Int        @default(1)
-  subjectId   Int
-  subject     Subject    @relation(fields: [subjectId], references: [id])
-  questions   Question[]
-  results     Result[]
-  createdAt   DateTime   @default(now())
+  id        String   @id @default(uuid())
+  question  String
+  subjectId String
+  subject   Subject  @relation(fields: [subjectId], references: [id])
+  options   Option[]
+  results   Result[]
 }
 
-model Question {
-  id     Int    @id @default(autoincrement())
-  text   String
-  answer String
-  testId Int
-  test   Test   @relation(fields: [testId], references: [id])
+model Option {
+  id        String  @id @default(uuid())
+  text      String
+  isCorrect Boolean @default(false)
+  testId    String
+  test      Test    @relation(fields: [testId], references: [id])
 }
 
 model User {
-  id          Int      @id @default(autoincrement())
-  username    String
-  email       String   @unique
-  password    String
-  xp          Int      @default(0)
-  rank        Rank     @default(F)
-  createdAt   DateTime @default(now())
-  is_verifyed Boolean  @default(false)
-  results     Result[]
+  id         String   @id @default(uuid())
+  username   String
+  email      String   @unique
+  password   String
+  xp         Int      @default(0)
+  rank       Rank     @default(F)
+  createdAt  DateTime @default(now())
+  isVerified Boolean  @default(false)
+  results    Result[]
 }
 
 model Result {
-  id          Int      @id @default(autoincrement())
-  userId      Int
-  testId      Int
+  id          String   @id @default(uuid())
+  userId      String
+  testId      String
   xpEarned    Int      @default(0)
   completedAt DateTime @default(now())
   user        User     @relation(fields: [userId], references: [id])
@@ -84,16 +80,15 @@ model Result {
 }
 
 model Subscription {
-  id           Int              @id @default(autoincrement())
+  id           String           @id @default(uuid())
   adminId      String           @unique
   type         SubscriptionType @default(MONTHLY)
-  verifed      Boolean          @default(false)
+  verified     Boolean          @default(false)
   limit        Int              @default(200)
   subjectLimit Int              @default(3)
   expiresAt    DateTime
   active       Boolean          @default(true)
   admin        Admin            @relation(fields: [adminId], references: [tgId])
-  
 }
 
 enum SubscriptionType {
@@ -101,14 +96,6 @@ enum SubscriptionType {
   THREE_MONTHS
   SIX_MONTHS
   YEARLY
-}
-
-enum TestLevel {
-  EASY
-  MEDIUM
-  HARD
-  EXPERT
-  LEGENDARY
 }
 
 enum Rank {
