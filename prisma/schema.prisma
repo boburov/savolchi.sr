@@ -1,33 +1,109 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
   // url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
-}
-
-// schema.prisma
 model User {
-  id      Int      @id @default(autoincrement())
-  email   String   @unique
-  name    String?
-  posts   Post[]
-  profile Profile?
+  id         String   @id @default(cuid())
+  username   String
+  email      String   @unique
+  password   String
+  xp         Int      @default(0)
+  rank       Rank     @default(F)
+  createdAt  DateTime @default(now())
+  isVerified Boolean  @default(false)
+  Result     Result[]
 }
 
-model Post {
-  id        Int     @id @default(autoincrement())
-  title     String
-  content   String?
-  published Boolean @default(false)
-  author    User    @relation(fields: [authorId], references: [id])
-  authorId  Int
+model Admin {
+  id           String        @id @default(cuid())
+  name         String
+  email        String        @unique
+  password     String
+  isVerified   Boolean       @default(false)
+  tgId         String?       @unique
+  createdAt    DateTime      @default(now())
+  Channel      Channel?
+  Subscription Subscription?
 }
 
-model Profile {
-  id     Int    @id @default(autoincrement())
-  bio    String
-  user   User   @relation(fields: [userId], references: [id])
-  userId Int    @unique
+model Channel {
+  id        String    @id
+  name      String
+  pfp       String?
+  banner    String?
+  bio       String?
+  adminId   String    @unique
+  createdAt DateTime  @default(now())
+  Admin     Admin     @relation(fields: [adminId], references: [id])
+  Subject   Subject[]
+}
+
+model Option {
+  id        String  @id @default(cuid())
+  text      String
+  isCorrect Boolean @default(false)
+  testId    String
+  Test      Test    @relation(fields: [testId], references: [id])
+}
+
+model Result {
+  id          String   @id @default(cuid())
+  userId      String
+  testId      String
+  xpEarned    Int      @default(0)
+  completedAt DateTime @default(now())
+  Test        Test     @relation(fields: [testId], references: [id])
+  User        User     @relation(fields: [userId], references: [id])
+}
+
+model Subject {
+  id        String   @id @default(cuid())
+  name      String
+  channelId String
+  createdAt DateTime @default(now())
+  Channel   Channel  @relation(fields: [channelId], references: [id])
+  Test      Test[]
+}
+
+model Subscription {
+  id           String           @id @default(cuid())
+  adminId      String           @unique
+  type         SubscriptionType @default(MONTHLY)
+  verified     Boolean          @default(false)
+  limit        Int              @default(200)
+  subjectLimit Int              @default(3)
+  expiresAt    DateTime
+  active       Boolean          @default(true)
+  Admin        Admin            @relation(fields: [adminId], references: [tgId])
+}
+
+model Test {
+  id        String   @id @default(cuid())
+  question  String
+  subjectId String
+  Option    Option[]
+  Result    Result[]
+  Subject   Subject  @relation(fields: [subjectId], references: [id])
+}
+
+enum Rank {
+  S
+  A
+  B
+  C
+  D
+  E
+  F
+}
+
+enum SubscriptionType {
+  MONTHLY
+  THREE_MONTHS
+  SIX_MONTHS
+  YEARLY
 }

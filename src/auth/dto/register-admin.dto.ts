@@ -1,0 +1,14 @@
+// src/auth/dto/register-admin.dto.ts
+import { IsEmail, IsString, MinLength } from 'class-validator';
+
+export class RegisterAdminDto {
+  @IsString()
+  name: string;
+
+  @IsEmail()
+  email: string;
+
+  @IsString()
+  @MinLength(8)
+  password: string;
+}

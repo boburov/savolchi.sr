@@ -1,0 +1,10 @@
+// src/auth/dto/verify-email.dto.ts
+import { IsEmail, IsString } from 'class-validator';
+
+export class VerifyEmailDto {
+  @IsEmail()
+  email: string;
+
+  @IsString()
+  token: string;
+}
