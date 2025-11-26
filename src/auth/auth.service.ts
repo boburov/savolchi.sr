@@ -1,4 +1,3 @@
-// src/auth/auth.service.ts
 import {
   Injectable,
   BadRequestException,
@@ -6,12 +5,11 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { randomBytes } from 'crypto';
 import { RedisService } from '../service/redis.service';
 import { MailerService } from '../service/mailer.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterUserDto } from './dto/register-user.dto';
-import { VerifyEmailDto } from './dto/verify-email.dto';
+import { RegisterAdminDto } from './dto/register-admin.dto';
 
 @Injectable()
 export class AuthService {
@@ -22,63 +20,159 @@ export class AuthService {
     private mailerService: MailerService,
   ) {}
 
-  async registerUser(dto: RegisterUserDto) {
-    const exists = await this.prisma.user.findUnique({ where: { email: dto.email } });
-    if (exists) throw new BadRequestException('Email already taken');
+  // Generate 6-digit code
+  sixDigitCode() {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  }
 
-    const hash = await bcrypt.hash(dto.password, 10);
+  // User Registration
+  async createUser(dto: RegisterUserDto) {
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: dto.email },
+    });
+    if (existingUser) {
+      throw new BadRequestException('Email already in use');
+    }
+
+    const hashedPassword = await bcrypt.hash(dto.password, 10);
+
     const user = await this.prisma.user.create({
       data: {
-        username: dto.username,
         email: dto.email,
-        password: hash,
+        password: hashedPassword,
+        username: dto.username,
       },
     });
 
-    const token = randomBytes(32).toString('hex');
-    await this.redisService.setVerificationToken(dto.email, token);
-    await this.mailerService.sendVerificationEmail(dto.email, token, dto.username);
+    const sixDigitCode = this.sixDigitCode();
 
-    return { message: 'User created! Check your email to verify.' };
+    await this.redisService.set(
+      `email_verification_code:${user.id}`,
+      sixDigitCode,
+      900,
+    );
+
+    await this.mailerService.sendVerificationCodeEmail(
+      user.email,
+      sixDigitCode,
+      user.username,
+    );
+    return { message: 'User registered. Please verify your email.', user };
   }
 
-  async verifyEmail(dto: VerifyEmailDto) {
-    const storedToken = await this.redisService.getVerificationToken(dto.email);
-    if (!storedToken || storedToken !== dto.token) {
-      throw new BadRequestException('Invalid or expired token');
+  // Email Verification
+  async verifyEmail(userId: string, code: string) {
+    const storedCode = await this.redisService.get(
+      `email_verification_code:${userId}`,
+    );
+
+    if (storedCode !== code) {
+      throw new BadRequestException('Invalid or expired verification code');
     }
 
-    // Update both User and Admin if exists
-    await this.prisma.user.updateMany({
-      where: { email: dto.email },
+    await this.prisma.user.update({
+      where: { id: String(userId) },
       data: { isVerified: true },
     });
 
-    await this.prisma.admin.updateMany({
+    await this.redisService.del(`email_verification_code:${userId}`);
+
+    return { message: 'Email verified successfully' };
+  }
+
+  // User Validation
+  async validateUser(email: string, password: string) {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    if (!user.isVerified) {
+      throw new UnauthorizedException('Email not verified');
+    }
+
+    const token = this.jwtService.sign(user);
+
+    return { ...user, token };
+  }
+
+  // Admin Registration
+  async createAdmin(dto: RegisterAdminDto) {
+    const existingAdmin = await this.prisma.admin.findUnique({
       where: { email: dto.email },
+    });
+    if (existingAdmin) {
+      throw new BadRequestException('Email already in use');
+    }
+
+    const hashedPassword = await bcrypt.hash(dto.password, 10);
+
+    const admin = await this.prisma.admin.create({
+      data: {
+        email: dto.email,
+        password: hashedPassword,
+        name: dto.name,
+      },
+    });
+
+    const sixDigitCode = this.sixDigitCode();
+
+    await this.redisService.set(
+      `email_verification_code:admin:${admin.id}`,
+      sixDigitCode,
+      900,
+    );
+
+    await this.mailerService.sendVerificationCodeEmail(
+      admin.email,
+      sixDigitCode,
+      admin.name,
+    );
+
+    return { message: 'Admin registered successfully', admin };
+  }
+
+  // Admin Validation
+  async validateAdmin(email: string, password: string) {
+    const admin = await this.prisma.admin.findUnique({ where: { email } });
+    if (!admin) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, admin.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const token = this.jwtService.sign(admin);
+
+    return { ...admin, token };
+  }
+
+  // Admin Email Verification
+  async verifyAdminEmail(adminId: string, code: string) {
+    const storedCode = await this.redisService.get(
+      `email_verification_code:admin:${adminId}`,
+    );
+
+    if (storedCode !== code) {
+      throw new BadRequestException('Invalid or expired verification code');
+    }
+
+    const admin = await this.prisma.admin.update({
+      where: { id: String(adminId) },
       data: { isVerified: true },
     });
 
-    await this.redisService.deleteVerificationToken(dto.email);
-    return { message: 'Email verified successfully! 🎉' };
-  }
+    await this.redisService.del(`email_verification_code:admin:${adminId}`);
 
-  async login(email: string, password: string, role: 'user' | 'admin') {
-    const model = role === 'admin' ? this.prisma.admin : this.prisma.user;
-    const entity = await this.prisma.user.findUnique({ where: { email } });
+    const token = this.jwtService.sign(admin);
 
-    if (!entity || !(await bcrypt.compare(password, entity.password))) {
-      throw new UnauthorizedException('Wrong credentials');
-    }
-
-    if (!entity.isVerified) {
-      throw new UnauthorizedException('Please verify your email first');
-    }
-
-    const payload = { sub: entity.id, email: entity.email, role };
-    return {
-      access_token: this.jwtService.sign(payload),
-      role,
-    };
+    return { message: 'Admin email verified successfully', admin, token };
   }
 }

@@ -12,6 +12,7 @@ model User {
   username   String
   email      String   @unique
   password   String
+  role       String   @default("USER")
   xp         Int      @default(0)
   rank       Rank     @default(F)
   createdAt  DateTime @default(now())
@@ -24,6 +25,7 @@ model Admin {
   name         String
   email        String        @unique
   password     String
+  role         String        @default("ADMIN")
   isVerified   Boolean       @default(false)
   tgId         String?       @unique
   createdAt    DateTime      @default(now())

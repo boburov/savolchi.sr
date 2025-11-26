@@ -3,8 +3,8 @@ import { IsEmail, IsString } from 'class-validator';
 
 export class VerifyEmailDto {
   @IsEmail()
-  email: string;
+  userId: string;
 
   @IsString()
-  token: string;
+  code: string;
 }
