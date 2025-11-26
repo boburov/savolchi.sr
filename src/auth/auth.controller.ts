@@ -17,8 +17,8 @@ export class AuthController {
   // Email Verification
   @Post('validate/code')
   async validateCode(@Body() dto: VerifyEmailDto) {
-    const { userId, code } = dto;
-    return this.authService.verifyEmail(userId, code);
+    const { email, code } = dto;
+    return this.authService.verifyEmail(email, code);
   }
 
   // User Login
@@ -42,7 +42,19 @@ export class AuthController {
   // Verify Admin Email
   @Post('validate/admin/code')
   async validateAdminCode(@Body() dto: VerifyEmailDto) {
-    const { userId, code } = dto;
-    return this.authService.verifyAdminEmail(userId, code);
+    const { email, code } = dto;
+    return this.authService.verifyAdminEmail(email, code);
+  }
+
+  // verify User Token
+  @Post('verify/user/token')
+  async verifyUserToken(@Body() dto: { token: string }) {
+    return this.authService.verifyUserToken(dto.token);
+  }
+
+  // verify Admin Token
+  @Post('verify/admin/token')
+  async verifyAdminToken(@Body() dto: { token: string }) {
+    return this.authService.verifyAdminToken(dto.token);
   }
 }

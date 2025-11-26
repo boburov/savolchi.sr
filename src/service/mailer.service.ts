@@ -73,7 +73,7 @@ export class MailerService {
     <body>
       <div class="container">
         <div class="header">
-          <h1>QuizMaster</h1>
+          <h1>Savolchi</h1>
         </div>
         <div class="body">
           <h2>Salom, <strong>${name}</strong>! 👋</h2>
@@ -88,7 +88,7 @@ export class MailerService {
         </div>
         <div class="footer">
           <p>Bu xatni siz so'ragansiz. Agar siz emas bo'lsangiz, e'tibor bermang.</p>
-          <p>© 2025 QuizMaster. Barcha huquqlar himoyalangan.</p>
+          <p>© 2025 Savolchi. Barcha huquqlar himoyalangan.</p>
         </div>
       </div>
     </body>
@@ -96,9 +96,9 @@ export class MailerService {
   `;
 
     await this.transporter.sendMail({
-      from: `"QuizMaster" <${this.configService.get<string>('SMTP_USER')}>`,
+      from: `"Savolchi" <${this.configService.get<string>('SMTP_USER')}>`,
       to,
-      subject: '🔥 Tasdiqlash kodi | QuizMaster',
+      subject: '🔥 Tasdiqlash kodi | Savolchi',
       html,
     });
 

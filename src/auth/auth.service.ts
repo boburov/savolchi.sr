@@ -47,7 +47,7 @@ export class AuthService {
     const sixDigitCode = this.sixDigitCode();
 
     await this.redisService.set(
-      `email_verification_code:${user.id}`,
+      `email_verification_code:${user.email}`,
       sixDigitCode,
       900,
     );
@@ -61,9 +61,9 @@ export class AuthService {
   }
 
   // Email Verification
-  async verifyEmail(userId: string, code: string) {
+  async verifyEmail(email: string, code: string) {
     const storedCode = await this.redisService.get(
-      `email_verification_code:${userId}`,
+      `email_verification_code:${email}`,
     );
 
     if (storedCode !== code) {
@@ -71,11 +71,11 @@ export class AuthService {
     }
 
     await this.prisma.user.update({
-      where: { id: String(userId) },
+      where: { id: String(email) },
       data: { isVerified: true },
     });
 
-    await this.redisService.del(`email_verification_code:${userId}`);
+    await this.redisService.del(`email_verification_code:${email}`);
 
     return { message: 'Email verified successfully' };
   }
@@ -101,6 +101,22 @@ export class AuthService {
     return { ...user, token };
   }
 
+  // Verify User Token
+  async verifyUserToken(token: string) {
+    try {
+      const decoded = this.jwtService.verify(token);
+      const user = await this.prisma.user.findUnique({
+        where: { id: decoded.id },
+      });
+      if (!user) {
+        throw new UnauthorizedException('Invalid token');
+      }
+      return user;
+    } catch {
+      throw new UnauthorizedException('Invalid token');
+    }
+  }
+
   // Admin Registration
   async createAdmin(dto: RegisterAdminDto) {
     const existingAdmin = await this.prisma.admin.findUnique({
@@ -123,7 +139,7 @@ export class AuthService {
     const sixDigitCode = this.sixDigitCode();
 
     await this.redisService.set(
-      `email_verification_code:admin:${admin.id}`,
+      `email_verification_code:admin:${admin.email}`,
       sixDigitCode,
       900,
     );
@@ -155,9 +171,9 @@ export class AuthService {
   }
 
   // Admin Email Verification
-  async verifyAdminEmail(adminId: string, code: string) {
+  async verifyAdminEmail(email: string, code: string) {
     const storedCode = await this.redisService.get(
-      `email_verification_code:admin:${adminId}`,
+      `email_verification_code:admin:${email}`,
     );
 
     if (storedCode !== code) {
@@ -165,14 +181,57 @@ export class AuthService {
     }
 
     const admin = await this.prisma.admin.update({
-      where: { id: String(adminId) },
+      where: { email },
       data: { isVerified: true },
     });
 
-    await this.redisService.del(`email_verification_code:admin:${adminId}`);
+    await this.redisService.del(`email_verification_code:admin:${email}`);
 
     const token = this.jwtService.sign(admin);
 
     return { message: 'Admin email verified successfully', admin, token };
+  }
+
+  // Verify Admin Token
+  async verifyAdminToken(token: string) {
+    try {
+      const decoded = this.jwtService.verify(token);
+
+      const admin = await this.prisma.admin.findUnique({
+        where: { id: decoded.id },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          isVerified: true,
+          channel: {
+            select: {
+              id: true,
+              name: true,
+              pfp: true,
+              banner: true,
+              bio: true,
+            },
+          },
+          subscription: {
+            select: {
+              id: true,
+              type: true,
+              limit: true,
+              subjectLimit: true,
+              expiresAt: true,
+              active: true,
+              verified: true,
+            },
+          },
+        },
+      });
+
+      if (!admin) throw new UnauthorizedException('Invalid token');
+      return admin;
+    } catch {
+      throw new UnauthorizedException('Invalid token');
+    }
   }
 }

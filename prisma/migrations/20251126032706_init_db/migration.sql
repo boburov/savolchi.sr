@@ -1,45 +1,23 @@
-/*
-  Warnings:
-
-  - The primary key for the `User` table will be changed. If it partially fails, the table could be left without primary key constraint.
-  - You are about to drop the column `name` on the `User` table. All the data in the column will be lost.
-  - You are about to drop the `Post` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Profile` table. If the table is not empty, all the data it contains will be lost.
-  - Added the required column `password` to the `User` table without a default value. This is not possible if the table is not empty.
-  - Added the required column `username` to the `User` table without a default value. This is not possible if the table is not empty.
-
-*/
 -- CreateEnum
 CREATE TYPE "Rank" AS ENUM ('S', 'A', 'B', 'C', 'D', 'E', 'F');
 
 -- CreateEnum
 CREATE TYPE "SubscriptionType" AS ENUM ('MONTHLY', 'THREE_MONTHS', 'SIX_MONTHS', 'YEARLY');
 
--- DropForeignKey
-ALTER TABLE "Post" DROP CONSTRAINT "Post_authorId_fkey";
+-- CreateTable
+CREATE TABLE "User" (
+    "id" TEXT NOT NULL,
+    "username" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "password" TEXT NOT NULL,
+    "role" TEXT NOT NULL DEFAULT 'USER',
+    "xp" INTEGER NOT NULL DEFAULT 0,
+    "rank" "Rank" NOT NULL DEFAULT 'F',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "isVerified" BOOLEAN NOT NULL DEFAULT false,
 
--- DropForeignKey
-ALTER TABLE "Profile" DROP CONSTRAINT "Profile_userId_fkey";
-
--- AlterTable
-ALTER TABLE "User" DROP CONSTRAINT "User_pkey",
-DROP COLUMN "name",
-ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-ADD COLUMN     "isVerified" BOOLEAN NOT NULL DEFAULT false,
-ADD COLUMN     "password" TEXT NOT NULL,
-ADD COLUMN     "rank" "Rank" NOT NULL DEFAULT 'F',
-ADD COLUMN     "username" TEXT NOT NULL,
-ADD COLUMN     "xp" INTEGER NOT NULL DEFAULT 0,
-ALTER COLUMN "id" DROP DEFAULT,
-ALTER COLUMN "id" SET DATA TYPE TEXT,
-ADD CONSTRAINT "User_pkey" PRIMARY KEY ("id");
-DROP SEQUENCE "User_id_seq";
-
--- DropTable
-DROP TABLE "Post";
-
--- DropTable
-DROP TABLE "Profile";
+    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "Admin" (
@@ -47,11 +25,26 @@ CREATE TABLE "Admin" (
     "name" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
+    "role" TEXT NOT NULL DEFAULT 'ADMIN',
     "isVerified" BOOLEAN NOT NULL DEFAULT false,
     "tgId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Admin_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Subscription" (
+    "id" TEXT NOT NULL,
+    "adminId" TEXT NOT NULL,
+    "type" "SubscriptionType" NOT NULL DEFAULT 'MONTHLY',
+    "verified" BOOLEAN NOT NULL DEFAULT false,
+    "limit" INTEGER NOT NULL DEFAULT 200,
+    "subjectLimit" INTEGER NOT NULL DEFAULT 3,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+    "active" BOOLEAN NOT NULL DEFAULT true,
+
+    CONSTRAINT "Subscription_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -99,20 +92,6 @@ CREATE TABLE "Subject" (
 );
 
 -- CreateTable
-CREATE TABLE "Subscription" (
-    "id" TEXT NOT NULL,
-    "adminId" TEXT NOT NULL,
-    "type" "SubscriptionType" NOT NULL DEFAULT 'MONTHLY',
-    "verified" BOOLEAN NOT NULL DEFAULT false,
-    "limit" INTEGER NOT NULL DEFAULT 200,
-    "subjectLimit" INTEGER NOT NULL DEFAULT 3,
-    "expiresAt" TIMESTAMP(3) NOT NULL,
-    "active" BOOLEAN NOT NULL DEFAULT true,
-
-    CONSTRAINT "Subscription_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "Test" (
     "id" TEXT NOT NULL,
     "question" TEXT NOT NULL,
@@ -122,16 +101,22 @@ CREATE TABLE "Test" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Admin_email_key" ON "Admin"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Admin_tgId_key" ON "Admin"("tgId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Channel_adminId_key" ON "Channel"("adminId");
+CREATE UNIQUE INDEX "Subscription_adminId_key" ON "Subscription"("adminId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Subscription_adminId_key" ON "Subscription"("adminId");
+CREATE UNIQUE INDEX "Channel_adminId_key" ON "Channel"("adminId");
+
+-- AddForeignKey
+ALTER TABLE "Subscription" ADD CONSTRAINT "Subscription_adminId_fkey" FOREIGN KEY ("adminId") REFERENCES "Admin"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Channel" ADD CONSTRAINT "Channel_adminId_fkey" FOREIGN KEY ("adminId") REFERENCES "Admin"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -147,9 +132,6 @@ ALTER TABLE "Result" ADD CONSTRAINT "Result_userId_fkey" FOREIGN KEY ("userId") 
 
 -- AddForeignKey
 ALTER TABLE "Subject" ADD CONSTRAINT "Subject_channelId_fkey" FOREIGN KEY ("channelId") REFERENCES "Channel"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Subscription" ADD CONSTRAINT "Subscription_adminId_fkey" FOREIGN KEY ("adminId") REFERENCES "Admin"("tgId") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Test" ADD CONSTRAINT "Test_subjectId_fkey" FOREIGN KEY ("subjectId") REFERENCES "Subject"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

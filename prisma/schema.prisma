@@ -17,59 +17,34 @@ model User {
   rank       Rank     @default(F)
   createdAt  DateTime @default(now())
   isVerified Boolean  @default(false)
-  Result     Result[]
+  result     Result[]
 }
 
 model Admin {
-  id           String        @id @default(cuid())
-  name         String
-  email        String        @unique
-  password     String
-  role         String        @default("ADMIN")
-  isVerified   Boolean       @default(false)
-  tgId         String?       @unique
-  createdAt    DateTime      @default(now())
-  Channel      Channel?
-  Subscription Subscription?
+  id         String   @id @default(cuid())
+  name       String
+  email      String   @unique
+  password   String
+  role       String   @default("ADMIN")
+  isVerified Boolean  @default(false)
+  tgId       String?  @unique
+  createdAt  DateTime @default(now())
+
+  channel      Channel?      @relation("AdminHasChannel")
+  subscription Subscription? @relation("AdminHasSubscription")
 }
 
 model Channel {
-  id        String    @id
+  id        String   @id
   name      String
   pfp       String?
   banner    String?
   bio       String?
-  adminId   String    @unique
-  createdAt DateTime  @default(now())
-  Admin     Admin     @relation(fields: [adminId], references: [id])
-  Subject   Subject[]
-}
-
-model Option {
-  id        String  @id @default(cuid())
-  text      String
-  isCorrect Boolean @default(false)
-  testId    String
-  Test      Test    @relation(fields: [testId], references: [id])
-}
-
-model Result {
-  id          String   @id @default(cuid())
-  userId      String
-  testId      String
-  xpEarned    Int      @default(0)
-  completedAt DateTime @default(now())
-  Test        Test     @relation(fields: [testId], references: [id])
-  User        User     @relation(fields: [userId], references: [id])
-}
-
-model Subject {
-  id        String   @id @default(cuid())
-  name      String
-  channelId String
+  adminId   String   @unique
   createdAt DateTime @default(now())
-  Channel   Channel  @relation(fields: [channelId], references: [id])
-  Test      Test[]
+
+  admin   Admin     @relation("AdminHasChannel", fields: [adminId], references: [id])
+  subject Subject[]
 }
 
 model Subscription {
@@ -81,7 +56,35 @@ model Subscription {
   subjectLimit Int              @default(3)
   expiresAt    DateTime
   active       Boolean          @default(true)
-  Admin        Admin            @relation(fields: [adminId], references: [tgId])
+
+  admin Admin @relation("AdminHasSubscription", fields: [adminId], references: [id])
+}
+
+model Option {
+  id        String  @id @default(cuid())
+  text      String
+  isCorrect Boolean @default(false)
+  testId    String
+  test      Test    @relation(fields: [testId], references: [id])
+}
+
+model Result {
+  id          String   @id @default(cuid())
+  userId      String
+  testId      String
+  xpEarned    Int      @default(0)
+  completedAt DateTime @default(now())
+  test        Test     @relation(fields: [testId], references: [id])
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+model Subject {
+  id        String   @id @default(cuid())
+  name      String
+  channelId String
+  createdAt DateTime @default(now())
+  Channel   Channel  @relation(fields: [channelId], references: [id])
+  Test      Test[]
 }
 
 model Test {
