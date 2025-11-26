@@ -1,4 +1,3 @@
-// main.ts
 import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
 
@@ -10,6 +9,7 @@ async function bootstrap() {
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
+
 
   await app.listen(5000);
 }
