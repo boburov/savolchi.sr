@@ -6,15 +6,17 @@ import { PrismaModule } from './prisma/prisma.module';
 import { ConfigModule } from '@nestjs/config';
 import bunnyConfig from './config/bunny.config';
 import { FilesModule } from './controller/files.module';
+import { ChanelModule } from './chanel/chanel.module';
 
 @Module({
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, ],
   imports: [
     AuthModule,
     FilesModule,
     PrismaModule,
     ConfigModule.forRoot({ isGlobal: true, load: [bunnyConfig] }),
+    ChanelModule,
   ],
 })
 export class AppModule {}
