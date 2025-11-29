@@ -70,14 +70,16 @@ export class AuthService {
       throw new BadRequestException('Invalid or expired verification code');
     }
 
-    await this.prisma.user.update({
-      where: { id: String(email) },
+    const user = await this.prisma.user.update({
+      where: { email },
       data: { isVerified: true },
     });
 
     await this.redisService.del(`email_verification_code:${email}`);
 
-    return { message: 'Email verified successfully' };
+    const token = this.jwtService.sign(user);
+
+    return { message: 'Email verified successfully', user, token };
   }
 
   // User Validation
