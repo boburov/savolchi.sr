@@ -210,6 +210,13 @@ export class AuthService {
               id: true,
               name: true,
               pfp: true,
+              subject: {
+                select: {
+                  id: true,
+                  name: true,
+                  Test: true,
+                },
+              },
               banner: true,
               bio: true,
             },

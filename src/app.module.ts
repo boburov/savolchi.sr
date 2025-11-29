@@ -7,6 +7,8 @@ import { ConfigModule } from '@nestjs/config';
 import bunnyConfig from './config/bunny.config';
 import { FilesModule } from './controller/files.module';
 import { ChanelModule } from './chanel/chanel.module';
+import { SubjectModule } from './subject/subject.module';
+import { TestsModule } from './tests/tests.module';
 
 @Module({
   controllers: [AppController],
@@ -17,6 +19,8 @@ import { ChanelModule } from './chanel/chanel.module';
     PrismaModule,
     ConfigModule.forRoot({ isGlobal: true, load: [bunnyConfig] }),
     ChanelModule,
+    SubjectModule,
+    TestsModule,
   ],
 })
 export class AppModule {}

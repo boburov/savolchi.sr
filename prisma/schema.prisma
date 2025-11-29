@@ -43,7 +43,7 @@ model Channel {
   adminId   String   @unique
   createdAt DateTime @default(now())
 
-  admin   Admin     @relation("AdminHasChannel", fields: [adminId], references: [id])
+  admin   Admin     @relation("AdminHasChannel", fields: [adminId], references: [id], onDelete: Cascade)
   subject Subject[]
 }
 
@@ -57,7 +57,7 @@ model Subscription {
   expiresAt    DateTime
   active       Boolean          @default(true)
 
-  admin Admin @relation("AdminHasSubscription", fields: [adminId], references: [id])
+  admin Admin @relation("AdminHasSubscription", fields: [adminId], references: [id], onDelete: Cascade)
 }
 
 model Option {
@@ -65,7 +65,7 @@ model Option {
   text      String
   isCorrect Boolean @default(false)
   testId    String
-  test      Test    @relation(fields: [testId], references: [id])
+  test      Test    @relation(fields: [testId], references: [id], onDelete: Cascade)
 }
 
 model Result {
@@ -74,8 +74,8 @@ model Result {
   testId      String
   xpEarned    Int      @default(0)
   completedAt DateTime @default(now())
-  test        Test     @relation(fields: [testId], references: [id])
-  user        User     @relation(fields: [userId], references: [id])
+  test        Test     @relation(fields: [testId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Subject {
@@ -83,7 +83,7 @@ model Subject {
   name      String
   channelId String
   createdAt DateTime @default(now())
-  Channel   Channel  @relation(fields: [channelId], references: [id])
+  Channel   Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
   Test      Test[]
 }
 
@@ -93,7 +93,7 @@ model Test {
   subjectId String
   Option    Option[]
   Result    Result[]
-  Subject   Subject  @relation(fields: [subjectId], references: [id])
+  Subject   Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
 }
 
 enum Rank {
