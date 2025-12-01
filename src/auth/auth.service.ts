@@ -82,20 +82,38 @@ export class AuthService {
     return { message: 'Email verified successfully', user, token };
   }
 
+  async userResetPassword(email: string, password: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+    if (!user) {
+      throw new UnauthorizedException('User Topilmadi');
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await this.prisma.user.update({
+      where: { email: email },
+      data: { password: hashedPassword },
+    });
+
+    return { msg: 'Parol Almashtrildi' };
+  }
+
   // User Validation
   async validateUser(email: string, password: string) {
     const user = await this.prisma.user.findUnique({ where: { email } });
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('User Topilmadi');
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException("Parol Noto'gri");
     }
 
     if (!user.isVerified) {
-      throw new UnauthorizedException('Email not verified');
+      throw new UnauthorizedException('User tasdiqlanmagan');
     }
 
     const token = this.jwtService.sign(user);

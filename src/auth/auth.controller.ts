@@ -21,6 +21,11 @@ export class AuthController {
     return this.authService.verifyEmail(email, code);
   }
 
+  @Post('reset/user/password')
+  async resetUserPassword(@Body() body: { email: string; password: string }) {
+    return this.authService.userResetPassword(body.email, body.password);
+  }
+
   // User Login
   @Post('login/user')
   async loginUser(@Body() dto: { email: string; password: string }) {
