@@ -1,12 +1,32 @@
-import { BadRequestException, Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Logger,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { RegisterAdminDto } from './dto/register-admin.dto';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private prisma: PrismaService,
+  ) {}
+
+  @Cron(CronExpression.EVERY_10_MINUTES)
+  async deleteUnverifedUser() {
+    await this.prisma.user.findMany({ where: { isVerified: false } });
+    await this.prisma.admin.findMany({ where: { isVerified: false } });
+    Logger.log("user va Adminlarni register bo'lmaganlarni ochirib tashlandi");
+  }
 
   // User Registration
   @Post('register/user')
@@ -43,7 +63,7 @@ export class AuthController {
     if (!email) {
       throw new BadRequestException('Email talab qilinadi');
     }
-    return this.authService.forgotPassword(email)
+    return this.authService.forgotPassword(email);
   }
 
   // Admin Login

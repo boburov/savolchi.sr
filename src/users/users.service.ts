@@ -15,6 +15,7 @@ export class UsersService {
         select: {
           id: true,
           username: true,
+          isVerified: true,
           email: true,
         },
         orderBy: { createdAt: 'desc' },
@@ -24,7 +25,7 @@ export class UsersService {
     ]);
 
     return {
-      data: users,
+      users,
       pagination: {
         page,
         limit,

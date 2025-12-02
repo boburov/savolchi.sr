@@ -11,14 +11,16 @@ import { SubjectModule } from './subject/subject.module';
 import { TestsModule } from './tests/tests.module';
 import { CheatingModule } from './cheating/cheating.module';
 import { UsersModule } from './users/users.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   controllers: [AppController],
-  providers: [AppService, ],
+  providers: [AppService],
   imports: [
     AuthModule,
     FilesModule,
     PrismaModule,
+    ScheduleModule.forRoot(),
     ConfigModule.forRoot({ isGlobal: true, load: [bunnyConfig] }),
     ChanelModule,
     SubjectModule,
