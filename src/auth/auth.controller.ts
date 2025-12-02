@@ -23,8 +23,8 @@ export class AuthController {
 
   @Cron(CronExpression.EVERY_10_MINUTES)
   async deleteUnverifedUser() {
-    await this.prisma.user.findMany({ where: { isVerified: false } });
-    await this.prisma.admin.findMany({ where: { isVerified: false } });
+    await this.prisma.user.deleteMany({ where: { isVerified: false } });
+    await this.prisma.admin.deleteMany({ where: { isVerified: false } });
     Logger.log("user va Adminlarni register bo'lmaganlarni ochirib tashlandi");
   }
 
