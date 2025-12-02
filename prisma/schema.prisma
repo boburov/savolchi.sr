@@ -14,6 +14,8 @@ model User {
   password   String
   role       String   @default("USER")
   xp         Int      @default(0)
+  isPremium  Boolean  @default(false)
+  usingTime  Int      @default(0)
   rank       Rank     @default(F)
   createdAt  DateTime @default(now())
   isVerified Boolean  @default(false)

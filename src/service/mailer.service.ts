@@ -105,6 +105,129 @@ export class MailerService {
     this.logger.log(`Verification CODE sent → ${to} | Code: ${code}`);
   }
 
+  async sendToken(to: string, token: string) {
+    const verifyUrl = `${this.frontendUrl}/verify?token=${token}`;
+
+    const html = `
+    <!DOCTYPE html>
+    <html lang="uz">
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Tasdiqlash kodi • Savolchi</title>
+      <style>
+        body { 
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
+          background: #f8fafc; 
+          margin: 0; 
+          padding: 20px; 
+          color: #1e293b;
+        }
+        .container { 
+          max-width: 780px; 
+          margin: 40px auto; 
+          background: white; 
+          border-radius: 20px; 
+          overflow: hidden; 
+          box-shadow: 0 20px 40px rgba(0,0,0,0.08); 
+          border: 1px solid #e2e8f0;
+        }
+        .header { 
+          background: linear-gradient(135deg, #a78bfa, #ec4899); 
+          padding: 48px 32px; 
+          text-align: center; 
+          color: white; 
+        }
+        .header h1 { 
+          margin: 0; 
+          font-size: 32px; 
+          font-weight: 800; 
+          letter-spacing: -0.5px;
+        }
+        .body { 
+          padding: 40px 32px; 
+          text-align: center; 
+        }
+        .greeting { 
+          font-size: 20px; 
+          margin-bottom: 8px; 
+        }
+        .code { 
+          background: linear-gradient(135deg, #ddd6fe, #fce7f3);
+          color: #6b21a8;
+          font-size: 12px; 
+          font-weight: 800; 
+          letter-spacing: 10px; 
+          padding: 20px 28px; 
+          border-radius: 16px; 
+          display: inline-block; 
+          margin: 28px 0;
+          border: 3px solid #c4b5fd;
+          box-shadow: 0 8px 20px rgba(139,92,246,0.15);
+        }
+      
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(139,92,246,0.5); }
+        .warning { color: #ef4444; font-weight: 600; }
+        .footer { 
+          background: #f1f5f9; 
+          padding: 28px; 
+          text-align: center; 
+          color: #64748b; 
+          font-size: 14px; 
+        }
+        .footer a { color: #8b5cf6; text-decoration: none; }
+
+          .btn {
+          display: inline-block;
+          background: linear-gradient(135deg, #8b5cf6, #ec4899);
+          color: #fff;
+          font-weight: 700;
+          font-size: 18px;
+          padding: 16px 40px;
+          border-radius: 50px;
+          text-decoration: none;
+          margin: 24px 0;
+          box-shadow: 0 10px 25px rgba(139,92,246,0.4);
+          transition: all 0.2s;
+        }
+          
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>Savolchi</h1>
+        </div>
+        <div class="body">
+          <h2 class="greeting">Salom bro! 👋</h2>
+          <p>Akkountingizni faollashtirish uchun tasdiqlang:</p>
+          
+          <div class="code">Tasdiqlash Tugmasini Bosing</div>
+          
+          <p>yoki bir marta bosish bilan tasdiqlang:</p>
+          <a href="${verifyUrl}" class="btn">✅ Tasdiqlash</a>
+          
+          <p class="warning">⚠️ Kod faqat 10 daqiqa ishlaydi!</p>
+        </div>
+        <div class="footer">
+          <p>Bu xatni siz so'ragansiz. Agar emas bo'lsa — ignore qiling.</p>
+          <p>© 2025 <a href="${this.frontendUrl}">Savolchi</a>. Made with ❤️ in Uzbekistan</p>
+        </div>
+      </div>
+    </body>
+    </html>
+    `;
+
+    await this.transporter.sendMail({
+      from: `"Savolchi" <${this.configService.get<string>('SMTP_USER')}>`,
+      to,
+      subject: '🔥 Tasdiqlash kodingiz • Savolchi',
+      html,
+    });
+
+    this.logger.log(`Verification link sent → ${to} | ${verifyUrl}`);
+  }
+
   async sendPasswordResetCodeEmail(to: string, code: string) {
     const html = `
     <!DOCTYPE html>

@@ -2,6 +2,7 @@ import {
   Injectable,
   BadRequestException,
   UnauthorizedException,
+  HttpException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -260,5 +261,36 @@ export class AuthService {
     } catch {
       throw new UnauthorizedException('Invalid token');
     }
+  }
+
+  async changeAdminPassword(email: string, password: string) {
+    const user = await this.prisma.admin.findFirst({ where: { email } });
+
+    if (!user) throw new HttpException('User Not Found', 404);
+
+    const hashedPassword = bcrypt.hash(password, 10);
+
+    await this.prisma.admin.update({
+      where: { email },
+      data: {
+        password: String(hashedPassword),
+      },
+    });
+  }
+
+  async forgotPassword(email: string) {
+    const user = await this.prisma.admin.findUnique({
+      where: { email: email },
+    });
+
+    if (!user) throw new HttpException('User Not Found', 404);
+
+    const token = await this.jwtService.sign(user);
+
+    await this.mailerService.sendToken(email, token);
+
+    return {
+      token,
+    };
   }
 }

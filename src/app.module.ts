@@ -9,6 +9,8 @@ import { FilesModule } from './controller/files.module';
 import { ChanelModule } from './chanel/chanel.module';
 import { SubjectModule } from './subject/subject.module';
 import { TestsModule } from './tests/tests.module';
+import { CheatingModule } from './cheating/cheating.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   controllers: [AppController],
@@ -21,6 +23,8 @@ import { TestsModule } from './tests/tests.module';
     ChanelModule,
     SubjectModule,
     TestsModule,
+    CheatingModule,
+    UsersModule,
   ],
 })
 export class AppModule {}

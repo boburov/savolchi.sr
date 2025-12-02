@@ -8,6 +8,7 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       'http://localhost:3000',
+      'http://localhost:3001',
       'https://admin.savolchi.uz/',
       'https://www.savolchi.uz/',
     ],

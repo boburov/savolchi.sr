@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
@@ -30,6 +30,20 @@ export class AuthController {
   @Post('login/user')
   async loginUser(@Body() dto: { email: string; password: string }) {
     return this.authService.validateUser(dto.email, dto.password);
+  }
+
+  // Admin Reset Password
+  @Post('reset/admin/password')
+  async resetPassword(@Body() data: { email: string; password: string }) {
+    return this.authService.changeAdminPassword(data.email, data.password);
+  }
+
+  @Post('forgot/password')
+  async forgotPassword(@Body('email') email: string) {
+    if (!email) {
+      throw new BadRequestException('Email talab qilinadi');
+    }
+    return this.authService.forgotPassword(email)
   }
 
   // Admin Login
