@@ -17,7 +17,11 @@ export class SubjectService {
   }
 
   async findAll() {
-    return this.prisma.subject.findMany();
+    return this.prisma.subject.findMany({
+      include: {
+        Test: true,
+      },
+    });
   }
 
   async findByChannel(channelId: string) {
