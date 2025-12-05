@@ -22,6 +22,8 @@ import { AuthGuard } from '@nestjs/passport';
 export class ChanelController {
   constructor(private readonly chanelService: ChanelService) {}
 
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN')
   @Post(':adminId')
   @UseInterceptors(
     FileFieldsInterceptor([
@@ -53,6 +55,8 @@ export class ChanelController {
     return this.chanelService.getOne(id);
   }
 
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN')
   @Patch(':id')
   @UseInterceptors(
     FileFieldsInterceptor([

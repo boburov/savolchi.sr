@@ -10,13 +10,6 @@ export class UsersController {
     return this.usersService.findAll(+limit, +page);
   }
 
-  @Post('giveResult')
-  async giveResult(
-    @Body() data: { userId: string; testId: string; isCorrect: boolean },
-  ) {
-    return this.usersService.getResult(data);
-  }
-
   @Put('update')
   async update(@Body() data: { id: string; username: string }) {
     return this.usersService.update(data);

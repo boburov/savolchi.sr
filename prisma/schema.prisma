@@ -63,32 +63,45 @@ model Subscription {
 }
 
 model Option {
-  id        String  @id @default(cuid())
-  text      String
-  isCorrect Boolean @default(false)
+  id        String   @id @default(cuid())
+  text      String   @unique
+  isCorrect Boolean  @default(false)
   testId    String
-  test      Test    @relation(fields: [testId], references: [id], onDelete: Cascade)
+  test      Test     @relation(fields: [testId], references: [id], onDelete: Cascade)
+  results   Result[]
 }
 
 model Result {
-  id          String   @id @default(cuid())
-  userId      String
-  testId      String
-  xpEarned    Int      @default(0)
-  completedAt DateTime @default(now())
-  test        Test     @relation(fields: [testId], references: [id], onDelete: Cascade)
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String  @id @default(cuid())
+  userId    String
+  testId    String  @unique
+  optionId  String  @unique
+  isSkiped  Boolean @default(false)
+  xpEarned  Int     @default(0)
+  timeSpent Int?
+  option    Option  @relation(fields: [optionId], references: [id])
+  test      Test    @relation(fields: [testId], references: [id], onDelete: Cascade)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Subject {
-  id        String   @id @default(cuid())
+  id        String     @id @default(cuid())
   name      String
   channelId String
-  timer     Int      @default(30)
-  type      TYPE     @default(PUBLIC)
-  createdAt DateTime @default(now())
-  Channel   Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  timer     Int        @default(30)
+  type      TYPE       @default(PUBLIC)
+  createdAt DateTime   @default(now())
+  Channel   Channel    @relation(fields: [channelId], references: [id], onDelete: Cascade)
   Test      Test[]
+  users     TestUser[]
+}
+
+model TestUser {
+  id        String   @id @default(uuid())
+  subject   Subject? @relation(fields: [subjectId], references: [id])
+  username  String
+  email     String   @unique
+  subjectId String?
 }
 
 model Test {
