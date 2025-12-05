@@ -16,6 +16,7 @@ import { UpdateChanelDto } from './dto/update-chanel.dto';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/roles/roles.guard';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('chanel')
 export class ChanelController {
@@ -73,7 +74,7 @@ export class ChanelController {
     );
   }
 
-  @UseGuards(RolesGuard)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('ADMIN')
   @Delete(':id')
   delete(@Param('id') id: string) {
