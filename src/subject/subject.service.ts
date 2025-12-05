@@ -11,6 +11,8 @@ export class SubjectService {
     return this.prisma.subject.create({
       data: {
         name: dto.name,
+        type: dto.type,
+        timer: dto.time,
         channelId: dto.channelId,
       },
     });

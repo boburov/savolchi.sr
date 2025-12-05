@@ -84,6 +84,8 @@ model Subject {
   id        String   @id @default(cuid())
   name      String
   channelId String
+  timer     Int      @default(30)
+  type      TYPE     @default(PUBLIC)
   createdAt DateTime @default(now())
   Channel   Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
   Test      Test[]
@@ -106,6 +108,11 @@ enum Rank {
   D
   E
   F
+}
+
+enum TYPE {
+  PRIVATE
+  PUBLIC
 }
 
 enum SubscriptionType {
